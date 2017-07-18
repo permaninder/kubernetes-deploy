@@ -11,14 +11,16 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       "Deploying ConfigMap/hello-cloud-configmap-data (timeout: 30s)",
       "Hello from Docker!", # unmanaged pod logs
       "Result: SUCCESS",
-      "Successfully deployed 13 resources"
+      "Successfully deployed 16 resources"
     ], in_order: true)
 
     assert_logs_match_all([
       %r{ReplicaSet/bare-replica-set\s+1 replica, 1 availableReplica, 1 readyReplica},
       %r{Deployment/web\s+1 replica, 1 updatedReplica, 1 availableReplica},
       %r{Service/web\s+Selects at least 1 pod},
-      %r{DaemonSet/nginx\s+1 currentNumberScheduled, 1 desiredNumberScheduled, 1 numberReady}
+      %r{DaemonSet/nginx\s+1 currentNumberScheduled, 1 desiredNumberScheduled, 1 numberReady, 1 numberAvailable},
+      %r{Service/nginx-ss\s+Selects at least 1 pod},
+      %r{StatefulSet/nginx-ss\s+2 replicas}
     ])
 
     # Verify that success section isn't duplicated for predeployed resources
@@ -55,9 +57,11 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       'service "web"',
       'deployment "web"',
       'ingress "web"',
-      'daemonset "nginx"'
+      'daemonset "nginx"',
+      'service "nginx-ss"',
+      'statefulset "nginx-ss"'
     ] # not necessarily listed in this order
-    expected_msgs = [/Pruned 6 resources and successfully deployed 3 resources/]
+    expected_msgs = [/Pruned 8 resources and successfully deployed 3 resources/]
     expected_pruned.map do |resource|
       expected_msgs << /The following resources were pruned:.*#{resource}/
     end
