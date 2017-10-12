@@ -11,14 +11,14 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       "Deploying ConfigMap/hello-cloud-configmap-data (timeout: 30s)",
       "Hello from Docker!", # unmanaged pod logs
       "Result: SUCCESS",
-      "Successfully deployed 16 resources"
+      "Successfully deployed 15 resources"
     ], in_order: true)
 
     assert_logs_match_all([
       %r{ReplicaSet/bare-replica-set\s+1 replica, 1 availableReplica, 1 readyReplica},
       %r{Deployment/web\s+1 replica, 1 updatedReplica, 1 availableReplica},
       %r{Service/web\s+Selects at least 1 pod},
-      %r{DaemonSet/nginx\s+1 currentNumberScheduled, 1 desiredNumberScheduled, 1 numberReady, 1 numberAvailable},
+      %r{DaemonSet/nginx\s+1 currentNumberScheduled, 1 desiredNumberScheduled, 1 numberReady},
       %r{Service/nginx-ss\s+Selects at least 1 pod},
       %r{StatefulSet/nginx-ss\s+2 replicas}
     ])
@@ -644,6 +644,25 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       "Final status: 1 currentNumberScheduled, 1 desiredNumberScheduled, 0 numberReady",
       "Events (common success events excluded):",
       "BackOff: Back-off restarting failed container",
+      "Logs from container 'nginx' (last 250 lines shown):",
+      "ls: /not-a-dir: No such file or directory"
+    ], in_order: true)
+  end
+
+  def test_bad_container_on_stateful_sets_fails
+    result = deploy_fixtures("hello-cloud", subset: ["stateful_set.yml"]) do |fixtures|
+      daemon_set = fixtures['stateful_set.yml']['StatefulSet'].first
+      container = daemon_set['spec']['template']['spec']['containers'].first
+      container["image"] = "busybox"
+      container["command"] = ["ls", "/not-a-dir"]
+    end
+
+    assert_deploy_failure(result)
+    assert_logs_match_all([
+      "StatefulSet/nginx-ss: FAILED",
+      "nginx: Crashing repeatedly (exit 1). See logs for more information.",
+      "Events (common success events excluded):",
+      "[Pod/nginx-ss-0]	FailedSync: Error syncing pod (2 events)",
       "Logs from container 'nginx' (last 250 lines shown):",
       "ls: /not-a-dir: No such file or directory"
     ], in_order: true)
