@@ -662,7 +662,7 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       "StatefulSet/nginx-ss: FAILED",
       "nginx: Crashing repeatedly (exit 1). See logs for more information.",
       "Events (common success events excluded):",
-      "[Pod/nginx-ss-0]	FailedSync: Error syncing pod (2 events)",
+      "[Pod/nginx-ss-0]	FailedSync: Error syncing pod",
       "Logs from container 'nginx' (last 250 lines shown):",
       "ls: /not-a-dir: No such file or directory"
     ], in_order: true)

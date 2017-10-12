@@ -9,6 +9,8 @@ module KubernetesDeploy
 
       if @found
         stateful_data = JSON.parse(raw_json)
+        @current_generation = stateful_data["metadata"]["generation"]
+        @observed_generation = stateful_data["status"]["observedGeneration"]
         @desired_replicas = stateful_data["spec"]["replicas"].to_i
         @rollout_data = stateful_data["status"].slice("replicas")
         @status = @rollout_data.map { |state_replicas, num| "#{num} #{state_replicas.chop.pluralize(num)}" }.join(", ")
@@ -21,7 +23,7 @@ module KubernetesDeploy
     end
 
     def deploy_succeeded?
-      @desired_replicas == @rollout_data["replicas"].to_i
+      @current_generation == @observed_generation && @desired_replicas == @rollout_data["replicas"].to_i
     end
 
     def deploy_failed?
