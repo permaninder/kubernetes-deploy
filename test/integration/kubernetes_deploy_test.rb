@@ -155,7 +155,7 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
       "Template validation failed",
       /Invalid template: ConfigMap-hello-cloud-configmap-data.*yml/,
       "> Error from kubectl:",
-      "error validating data: found invalid field myKey for v1.ObjectMeta",
+      "error: error validating",
       "> Rendered template content:",
       "      myKey: uhOh"
     ], in_order: true)
@@ -182,11 +182,10 @@ class KubernetesDeployTest < KubernetesDeploy::IntegrationTest
     end
     assert_deploy_failure(result)
     assert_logs_match_all([
-      "Command failed: apply -f",
-      "WARNING: Any resources not mentioned in the error below were likely created/updated.",
+      "Template validation failed",
       /Invalid template: ConfigMap-hello-cloud-configmap-data.*\.yml/,
       "> Error from kubectl:",
-      "    Error from server (BadRequest): error when creating",
+      "error: error validating",
       "> Rendered template content:",
       "          not_a_name:",
     ], in_order: true)
