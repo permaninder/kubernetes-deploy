@@ -33,7 +33,7 @@ module KubernetesDeploy
     private
 
     def memcached_deployment_exists?
-      deployments, _err, st = kubectl.run("get", "deployments", "-l name=#{@name}", "-o=json")
+      deployments, _err, st = kubectl.run("get", "deployments", "-l owner_name=#{@name}", "-o=json")
       return false unless st.success?
       parsed = JSON.parse(deployments)
       return false if parsed.fetch("items", []).count == 0
@@ -43,7 +43,7 @@ module KubernetesDeploy
     end
 
     def memcached_service_exists?
-      services, _err, st = kubectl.run("get", "services", "-l name=#{@name}", "-o=json")
+      services, _err, st = kubectl.run("get", "services", "-l owner_name=#{@name}", "-o=json")
       return false unless st.success?
       parsed = JSON.parse(services)
       return false if parsed.fetch("items", []).count == 0
